@@ -43,7 +43,9 @@ public class ListaEnlazada<T> implements Secuencia<T> {
             ultimo = nodo_nuevo;
         } else {
             ultimo.siguiente = nodo_nuevo;
+            nodo_nuevo.anterior = ultimo;
             ultimo = nodo_nuevo;
+            
         }
         longitud += 1;
     }
@@ -57,23 +59,27 @@ public class ListaEnlazada<T> implements Secuencia<T> {
     }
 
     public void eliminar(int i) {
-        Nodo nodo = primero;
-        int indice = 0;
-        Nodo previo = nodo.anterior;
-        Nodo posterior = nodo.siguiente;
+        Nodo actual = primero;
         if (i == 0){
-            primero = primero.siguiente;
-        } else if (i == longitud) {
+            if (longitud == 1){
+                primero = null;
+                ultimo = null;
+            } else {
+                primero = primero.siguiente;
+                primero.anterior = null;
+            }
+            
+        } else if (i == longitud-1) {
             ultimo = ultimo.anterior;
+            ultimo.siguiente = null;
         } else {
             for (int n = 0; n < i; n ++){
-                nodo = nodo.siguiente;
-                indice = n;
+                actual = actual.siguiente;
             }
-            previo.siguiente = nodo.anterior;
-            posterior.anterior = nodo.siguiente;
-
+            actual.anterior.siguiente = actual.siguiente;
+            actual.siguiente.anterior = actual.anterior;
         }
+        longitud -= 1;
     }
 
     public void modificarPosicion(int indice, T elem) {
@@ -86,7 +92,12 @@ public class ListaEnlazada<T> implements Secuencia<T> {
     }
 
     public ListaEnlazada(ListaEnlazada<T> lista) {
-        throw new UnsupportedOperationException("No implementada aun");
+        //ListaEnlazada<T> copia = new ListaEnlazada();
+        Nodo nodo = lista.primero;
+        for (int i = 0; i< lista.longitud; i ++){
+            this.agregarAtras(nodo.contenidoT);
+            nodo = nodo.siguiente;
+        }
     }
     
     @Override
@@ -100,13 +111,20 @@ public class ListaEnlazada<T> implements Secuencia<T> {
     }
 
     private class ListaIterador implements Iterador<T> {
-    	Nodo previo;
-        Nodo posterior;
-        Nodo actual;
+    	//Nodo previo;
+        //Nodo posterior; 
+        Nodo proximo_nodo; // atributo me_caí
+        public ListaIterador() {
+            proximo_nodo = primero;
+            
+        }
 
         public boolean haySiguiente() {
 	        boolean res = false;
-            if (actual.siguiente != null){
+            if (proximo_nodo == null){
+                return res;
+            }
+            if (proximo_nodo != null){ //lista vacia
                 res = true;
             }
             return res;
@@ -114,30 +132,34 @@ public class ListaEnlazada<T> implements Secuencia<T> {
         
         public boolean hayAnterior() {
             boolean res = false;
-            if (actual.anterior != null){
+            if (proximo_nodo == null){
+                return res;
+            }
+            if (proximo_nodo.anterior != primero){
                 res = true;
             }
             return res;
         }
 
         public T siguiente() {
-            Nodo nodo = actual;
-	        actual = actual.siguiente;
-            previo = actual;
-            return nodo.contenidoT;
+            T contenido = proximo_nodo.contenidoT;
+            if (proximo_nodo.siguiente != null){
+                proximo_nodo = proximo_nodo.siguiente;
+                
+            }
+            return contenido;
         }
         
 
         public T anterior() {
-	        Nodo nodo = actual;
-	        actual = actual.anterior;
-            posterior = actual;
-            return nodo.contenidoT;
+	        T contenido = proximo_nodo.contenidoT;
+	        proximo_nodo = proximo_nodo.anterior;
+            return contenido;
         }
     }
 
     public Iterador<T> iterador() {
-	    throw new UnsupportedOperationException("No implementada aun");
+	    return new ListaIterador();
     }
 
 }
